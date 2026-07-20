@@ -1,0 +1,63 @@
+/* filetree — layout and modal styling.
+   Per-filetype label colours are applied in tree.py (a tree label is a single
+   Rich renderable), so this file handles structure, the header/footer, and the
+   search overlay. */
+
+Screen {
+    background: $surface;
+}
+
+FileTree {
+    padding: 0 1;
+    scrollbar-size-vertical: 1;
+
+    /* Highlight the whole row the cursor is on so it's easy to see where you
+       are. The line variant spans the full width; the cursor variant gives the
+       label a stronger accent when the tree is focused. */
+    & > .tree--highlight-line {
+        background: $primary 20%;
+    }
+    & > .tree--cursor {
+        background: $primary 40%;
+        text-style: bold;
+    }
+}
+
+/* --- Search modal --- */
+SearchScreen {
+    align: center top;
+    background: $background 60%;
+}
+
+#search-box {
+    margin-top: 4;
+    width: 80%;
+    max-width: 120;
+    height: auto;
+    max-height: 80%;
+    padding: 1 1 0 1;
+    background: $panel;
+    border: round $primary;
+}
+
+#search-input {
+    border: none;
+    background: $boost;
+}
+
+#search-note {
+    color: $text-muted;
+    padding: 0 1;
+    height: 1;
+}
+
+#search-results {
+    height: auto;
+    max-height: 20;
+    border: none;
+    background: transparent;
+}
+
+#search-results:focus {
+    border: none;
+}

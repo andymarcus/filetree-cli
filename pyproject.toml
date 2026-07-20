@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "filetree"
+version = "0.1.0"
+description = "An interactive, colour-coded file-tree browser for your terminal."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Andy M", email = "andy.m@meandu.com" }]
+keywords = ["cli", "tui", "file-browser", "textual", "terminal"]
+dependencies = [
+    "textual>=0.80",
+]
+
+[project.scripts]
+filetree = "filetree.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/filetree"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/filetree/filetree.tcss" = "filetree/filetree.tcss"
