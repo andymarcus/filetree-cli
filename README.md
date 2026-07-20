@@ -10,9 +10,17 @@ Requires **Python 3.10+**. [`pipx`](https://pipx.pypa.io/) is recommended — it
 installs the tool in its own isolated environment and puts `filetree` on your
 PATH.
 
+> **This is a private repository.** To install it you must have access to the
+> repo and be authenticated with GitHub. The quickest way is the GitHub CLI:
+> `gh auth login` then `gh auth setup-git` (configures git to use your GitHub
+> credentials). Alternatively use the SSH URL shown below with an SSH key.
+
 ```bash
 # Install straight from GitHub (recommended)
 pipx install git+https://github.com/andymarcus/filetree-cli.git
+
+# …or over SSH if you have an SSH key set up
+pipx install git+ssh://git@github.com/andymarcus/filetree-cli.git
 ```
 
 No `pipx`? Either `python3 -m pip install --user pipx && pipx ensurepath`, or
