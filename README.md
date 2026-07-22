@@ -68,6 +68,11 @@ python -m filetree
 
 ## Notes
 
+- **Auto-refresh**: the tree watches the directories you have open and reloads
+  them automatically when files are added, removed, or renamed on disk — your
+  expanded folders and cursor position are preserved. It polls once a second by
+  default; tune it with `--refresh SECONDS`, or turn it off with `--no-watch`
+  (handy for very large trees or network filesystems).
 - **Opening files** is *smart*: text and code files open in your `$EDITOR`
   (falling back to `nvim`/`vim`/`nano`); everything else opens in the system
   default app (macOS `open`, Linux `xdg-open`).

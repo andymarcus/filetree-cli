@@ -59,6 +59,10 @@ class FileTree(DirectoryTree):
         # invalidates when the directory changes. Avoids re-listing on every
         # render of a visible folder row.
         self._child_count_cache: dict[Path, tuple[float, int]] = {}
+        # Auto-refresh: last-seen mtime of each expanded directory, used to
+        # detect on-disk changes and reload only the affected subtrees.
+        self._dir_mtimes: dict[Path, float] = {}
+        self._reloading = False
 
     # -- Hidden-file filtering --------------------------------------------
     def filter_paths(self, paths: Iterable[Path]) -> list[Path]:
@@ -202,3 +206,71 @@ class FileTree(DirectoryTree):
         while not node.children and elapsed < timeout:
             await asyncio.sleep(step)
             elapsed += step
+
+    # -- Auto-refresh on filesystem changes -------------------------------
+    def start_watching(self, interval: float = 1.0) -> None:
+        """Poll expanded directories on disk and reload any that changed.
+
+        A directory's mtime changes whenever entries are added, removed, or
+        renamed, so watching the mtimes of the currently-expanded directories
+        lets us reload exactly the subtrees that changed — while
+        ``DirectoryTree`` preserves expansion state and the cursor.
+        """
+        self.set_interval(interval, self._poll_filesystem)
+
+    def _expanded_dirs(self) -> dict[Path, TreeNode[DirEntry]]:
+        """Map each currently-expanded directory to its node."""
+        found: dict[Path, TreeNode[DirEntry]] = {}
+        stack = [self.root]
+        while stack:
+            node = stack.pop()
+            if (
+                node.data is not None
+                and node.allow_expand
+                and node.is_expanded
+            ):
+                found[node.data.path] = node
+                stack.extend(node.children)
+        return found
+
+    def _poll_filesystem(self) -> None:
+        # Skip while a reload is in flight; leave the mtime cache untouched so
+        # any change is re-detected on the next tick once we're free.
+        if self._reloading:
+            return
+
+        current: dict[Path, float] = {}
+        nodes: dict[Path, TreeNode[DirEntry]] = self._expanded_dirs()
+        for path in nodes:
+            try:
+                current[path] = path.stat().st_mtime
+            except OSError:
+                # Directory vanished; reloading its parent will prune it.
+                continue
+
+        # A path counts as changed only if we've seen it before with a
+        # different mtime (newly-expanded dirs load fresh, so they're skipped).
+        changed = {
+            path
+            for path, mtime in current.items()
+            if path in self._dir_mtimes and self._dir_mtimes[path] != mtime
+        }
+        if changed:
+            # Reload only the shallowest changed dirs — reloading a parent
+            # rebuilds its descendants, so nested changed dirs are redundant.
+            topmost = [
+                nodes[path]
+                for path in changed
+                if not any(parent in changed for parent in path.parents)
+            ]
+            self._reloading = True
+            self.run_worker(self._reload_nodes(topmost), exclusive=False)
+
+        self._dir_mtimes = current
+
+    async def _reload_nodes(self, nodes: list[TreeNode[DirEntry]]) -> None:
+        try:
+            for node in nodes:
+                await self.reload_node(node)
+        finally:
+            self._reloading = False

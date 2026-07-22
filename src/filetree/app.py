@@ -43,9 +43,11 @@ class FileTreeApp(App[None]):
         Binding("escape", "quit", "Quit", show=False),
     ]
 
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, watch: bool = True, refresh_interval: float = 1.0) -> None:
         super().__init__()
         self._root = root
+        self._watch = watch
+        self._refresh_interval = refresh_interval
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -61,6 +63,9 @@ class FileTreeApp(App[None]):
         tree.root.expand()
         tree.focus()
         self._apply_narrow(self.size.width)
+        if self._watch:
+            # Auto-reload directories when they change on disk.
+            tree.start_watching(self._refresh_interval)
 
     # -- Responsiveness ---------------------------------------------------
     def on_resize(self, event) -> None:  # noqa: ANN001 - Textual Resize event
@@ -146,6 +151,18 @@ def main() -> None:
         default=".",
         help="Directory to browse (defaults to the current directory).",
     )
+    parser.add_argument(
+        "--no-watch",
+        action="store_true",
+        help="Disable auto-refresh when files change on disk.",
+    )
+    parser.add_argument(
+        "--refresh",
+        type=float,
+        default=1.0,
+        metavar="SECONDS",
+        help="How often to poll for on-disk changes (default: 1.0).",
+    )
     parser.add_argument("-V", "--version", action="version", version=f"filetree {__version__}")
     args = parser.parse_args()
 
@@ -160,7 +177,11 @@ def main() -> None:
     if not root.is_dir():
         root = root.parent
 
-    FileTreeApp(root).run()
+    FileTreeApp(
+        root,
+        watch=not args.no_watch,
+        refresh_interval=max(0.1, args.refresh),
+    ).run()
 
 
 if __name__ == "__main__":
