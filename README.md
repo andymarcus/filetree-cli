@@ -6,12 +6,25 @@ in Finder, and fuzzy-search — all without leaving the terminal.
 
 ## Install
 
-Requires **Python 3.10+**. [`pipx`](https://pipx.pypa.io/) is recommended — it
-installs the tool in its own isolated environment and puts `filetree` on your
-PATH.
+### Homebrew (recommended)
 
 ```bash
-# Install straight from GitHub (recommended)
+brew install andymarcus/tap/filetree
+```
+
+That's the whole thing — no separate `brew tap` step, and Python is installed
+for you if you don't have it. To update later:
+
+```bash
+brew upgrade filetree
+```
+
+### With pipx
+
+Requires **Python 3.10+**. [`pipx`](https://pipx.pypa.io/) installs the tool in
+its own isolated environment and puts `filetree` on your PATH.
+
+```bash
 pipx install git+https://github.com/andymarcus/filetree-cli.git
 ```
 
@@ -20,12 +33,6 @@ install with pip directly:
 
 ```bash
 pip install --user git+https://github.com/andymarcus/filetree-cli.git
-```
-
-To update to the latest version later:
-
-```bash
-pipx upgrade filetree      # or: pipx reinstall filetree
 ```
 
 Then run it:
