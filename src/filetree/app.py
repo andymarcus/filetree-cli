@@ -11,21 +11,13 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Footer, Header
 
-from filetree import __version__, actions
+from filetree import __version__, actions, preview, styles
+from filetree.preview import MarkdownScreen
 from filetree.search import SearchScreen
 from filetree.tree import FileTree
 
 # Below this terminal width we drop the size/metadata column to keep names readable.
 NARROW_WIDTH = 60
-
-
-def _display_path(path: Path) -> str:
-    """Collapse the home directory to ``~`` for a tidy header."""
-    home = Path.home()
-    try:
-        return "~/" + str(path.relative_to(home))
-    except ValueError:
-        return str(path)
 
 
 class FileTreeApp(App[None]):
@@ -35,6 +27,7 @@ class FileTreeApp(App[None]):
 
     BINDINGS = [
         Binding("slash", "search", "Search"),
+        Binding("e", "open_raw", "Open raw"),
         Binding("c", "copy", "Copy path"),
         Binding("r", "reveal", "Reveal"),
         Binding("full_stop", "toggle_hidden", "Hidden"),
@@ -56,7 +49,7 @@ class FileTreeApp(App[None]):
 
     def on_mount(self) -> None:
         self.title = "filetree"
-        self.sub_title = _display_path(self._root)
+        self.sub_title = styles.display_path(self._root)
         tree = self.query_one(FileTree)
         tree.show_root = True
         tree.guide_depth = 3
@@ -80,6 +73,30 @@ class FileTreeApp(App[None]):
         self._open(event.path)
 
     def _open(self, path: Path) -> None:
+        """Open a file: Markdown renders in-app, everything else per `actions`."""
+        if not path.is_dir() and preview.is_markdown(path):
+            if self._preview_markdown(path):
+                return
+        self._open_raw(path)
+
+    def _preview_markdown(self, path: Path) -> bool:
+        """Push the rendered Markdown screen; False if we couldn't render it."""
+        if not preview.within_size_limit(path):
+            self.notify("Too large to render — opening the raw file")
+            return False
+        text = preview.read_document(path)
+        if text is None:
+            self.notify("Could not read the file — opening it in the editor")
+            return False
+
+        def _on_dismiss(result: str | None) -> None:
+            if result == preview.OPEN_IN_EDITOR:
+                self._open_raw(path)
+
+        self.push_screen(MarkdownScreen(path, text), _on_dismiss)
+        return True
+
+    def _open_raw(self, path: Path) -> None:
         status = actions.open_path(self, path)
         if status:
             self.notify(status)
@@ -90,6 +107,12 @@ class FileTreeApp(App[None]):
         if node is not None and node.data is not None:
             return node.data.path
         return None
+
+    def action_open_raw(self) -> None:
+        """Open the file under the cursor without rendering it."""
+        path = self._cursor_path()
+        if path is not None and not path.is_dir():
+            self._open_raw(path)
 
     def action_copy(self) -> None:
         path = self._cursor_path()
@@ -133,8 +156,9 @@ class FileTreeApp(App[None]):
 
     def action_help(self) -> None:
         self.notify(
-            "↑/↓ or j/k move   ←/→ or h/l fold   ⏎ open   c copy path   "
-            "r reveal in Finder   / search   . toggle hidden   q quit",
+            "↑/↓ or j/k move   ←/→ or h/l fold   ⏎ open (Markdown renders in-app)   "
+            "e open raw   c copy path   r reveal in Finder   / search   "
+            ". toggle hidden   q quit",
             title="filetree keys",
             timeout=8,
         )

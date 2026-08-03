@@ -61,3 +61,54 @@ SearchScreen {
 #search-results:focus {
     border: none;
 }
+
+/* --- Markdown preview modal --- */
+MarkdownScreen {
+    align: center middle;
+    background: $background 60%;
+}
+
+#md-box {
+    width: 90%;
+    max-width: 110;
+    height: 90%;
+    padding: 0 1;
+    background: $panel;
+    border: round $primary;
+}
+
+#md-title {
+    height: 1;
+    width: 100%;
+    padding: 0 1;
+    color: $text-muted;
+    text-overflow: ellipsis;
+}
+
+#md-viewer {
+    height: 1fr;
+    background: transparent;
+    scrollbar-size-vertical: 1;
+}
+
+#md-viewer Markdown {
+    background: transparent;
+}
+
+/* The contents pane docks left over the document, so it needs its own
+   background and an edge to read as a sidebar. */
+#md-viewer MarkdownTableOfContents {
+    background: $boost;
+    border-right: solid $primary 40%;
+}
+
+#md-viewer MarkdownTableOfContents > Tree {
+    background: transparent;
+    padding: 0 1;
+}
+
+#md-hint {
+    height: 1;
+    padding: 0 1;
+    color: $text-muted;
+}

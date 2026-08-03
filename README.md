@@ -58,7 +58,8 @@ python -m filetree
 | `↑` / `↓` or `j` / `k` | Move up / down |
 | `→` / `l` | Expand folder (or step into an open one) |
 | `←` / `h` | Collapse folder (or move to parent) |
-| `Enter` | Open file (editor for text, system app otherwise); toggle folders |
+| `Enter` | Open file (Markdown renders in-app, editor for other text, system app otherwise); toggle folders |
+| `e` | Open the highlighted file raw — skips the Markdown preview |
 | `c` | Copy the highlighted item's full path to the clipboard |
 | `r` | Reveal the highlighted item in Finder |
 | `/` | Fuzzy-search files and folders beneath the start directory |
@@ -73,9 +74,16 @@ python -m filetree
   expanded folders and cursor position are preserved. It polls once a second by
   default; tune it with `--refresh SECONDS`, or turn it off with `--no-watch`
   (handy for very large trees or network filesystems).
-- **Opening files** is *smart*: text and code files open in your `$EDITOR`
-  (falling back to `nvim`/`vim`/`nano`); everything else opens in the system
-  default app (macOS `open`, Linux `xdg-open`).
+- **Opening files** is *smart*: Markdown renders in-app, other text and code
+  files open in your `$EDITOR` (falling back to `nvim`/`vim`/`nano`), and
+  everything else opens in the system default app (macOS `open`, Linux
+  `xdg-open`).
+- **Markdown preview**: `.md` files (and `.markdown`, `.mkd`, `.mdown`) open in
+  a rendered view — headings, lists, tables, and code blocks — rather than as
+  raw source. Inside it: `↑`/`↓` or `j`/`k` scroll, `t` toggles a table of
+  contents, `Esc`/`q` closes, and `e` reopens the file in your editor. Links to
+  other Markdown files are followed in place, with `b` to go back; web links
+  open in your browser. Documents over 2 MB go straight to the editor.
 - **Icons**: plain ASCII icons are used by default so the tree renders in any
   terminal. If your terminal font is a [Nerd Font](https://www.nerdfonts.com/),
   set `FILETREE_NERD_FONT=1` for richer filetype glyphs.

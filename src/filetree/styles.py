@@ -189,6 +189,15 @@ def is_text_file(path: Path) -> bool:
         return False
 
 
+def display_path(path: Path) -> str:
+    """Format a path for display, collapsing the home directory to ``~``."""
+    home = Path.home()
+    try:
+        return "~/" + str(path.relative_to(home))
+    except ValueError:
+        return str(path)
+
+
 def human_size(num_bytes: int) -> str:
     """Format a byte count like ``1.2 KB``."""
     size = float(num_bytes)
