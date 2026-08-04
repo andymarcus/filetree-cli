@@ -35,7 +35,14 @@ install with pip directly:
 pip install --user git+https://github.com/andymarcus/filetree-cli.git
 ```
 
-Then run it:
+To update a pipx install later, reinstall from the repo — `pipx upgrade` can't
+tell that a git URL has moved on:
+
+```bash
+pipx install --force git+https://github.com/andymarcus/filetree-cli.git
+```
+
+### Run it
 
 ```bash
 filetree            # browse the current directory
